@@ -1,0 +1,41 @@
+# ==============================================================================
+# ESP-IDF Build & Output Artifacts
+# ==============================================================================
+build/
+build_*/
+sdkconfig
+sdkconfig.old
+
+# ==============================================================================
+# ESP Component Manager (Dependencies)
+# ==============================================================================
+managed_components/
+dependencies.lock
+
+# ==============================================================================
+# IDEs and Text Editors
+# ==============================================================================
+# VS Code
+.vscode/
+!.vscode/extensions.json
+!.vscode/launch.json
+
+# CLion / CMake
+.idea/
+cmake-build-*/
+
+# Other language/tool server caches
+.clangd/
+.cache/
+ccls-cache/
+
+# ==============================================================================
+# Testing & Python Logs
+# ==============================================================================
+__pycache__/
+*.pyc
+pytest_cache/
+pytest_embedded_log/
+app_info_/
+size_info_/
+*.log
