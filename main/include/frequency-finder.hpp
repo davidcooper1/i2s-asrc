@@ -1,19 +1,16 @@
 #pragma once
 #include <pulse-counter.hpp>
+#include <functional>
 #include <driver/gpio.h>
 #include <driver/pulse_cnt.h>
 #include <freertos/FreeRTOS.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 typedef struct {
     uint32_t sampleRate;
     uint8_t bitsPerSample;
 } FrequencyInfo;
 
-typedef void (*FrequencyChangeCallback)();
+typedef std::function<void()> FrequencyChangeCallback;
 
 class FrequencyFinder {
     public:
@@ -35,7 +32,3 @@ class FrequencyFinder {
         FrequencyChangeCallback frequencyCallback = nullptr;
         FrequencyInfo info;
 };
-
-#ifdef __cplusplus
-}
-#endif

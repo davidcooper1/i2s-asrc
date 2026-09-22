@@ -1,6 +1,6 @@
 idf_component_register(
-    SRCS "ring-buffer.cpp" "pulse-counter.cpp" "i2s-asrc.cpp" "frequency-finder.cpp"
-    INCLUDE_DIRS "."
+    SRCS "debounced-function.cpp" "ring-buffer.cpp" "pulse-counter.cpp" "i2s-asrc.cpp" "frequency-finder.cpp"
+    INCLUDE_DIRS "./include"
     REQUIRES
         esp_driver_pcnt
         esp_driver_gpio

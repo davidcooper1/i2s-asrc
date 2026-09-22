@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <driver/gpio.h>
 #include <frequency-finder.hpp>
+#include <debounced-function.hpp>
 
 FrequencyFinder in(GPIO_NUM_9, GPIO_NUM_11);
 FrequencyFinder out(GPIO_NUM_5, GPIO_NUM_6);
@@ -14,9 +15,15 @@ void I2SLoop(void* params) {
     }
 }
 
-void restartTask(TimerHandle_t timer) {
+void startTask() {
     printf("Task restarted.\n");
     if (I2SLoopTask == nullptr) {
+        auto inInfo = in.getFrequencyInfo();
+        auto outInfo = out.getFrequencyInfo();
+
+        printf("[In] Sample: %lu Bits: %u\n", inInfo.sampleRate, inInfo.bitsPerSample);
+        printf("[Out] Sample: %lu Bits: %u\n", outInfo.sampleRate, outInfo.bitsPerSample);
+
         xTaskCreatePinnedToCore(
             I2SLoop,
             "I2S Loop",
@@ -29,13 +36,7 @@ void restartTask(TimerHandle_t timer) {
     }
 }
 
-TimerHandle_t restartTimer = xTimerCreate(
-    "Restart I2S Task",
-    pdMS_TO_TICKS(1000),
-    pdFALSE,
-    (void*)0,
-    restartTask
-);
+DebouncedFunction restart(&startTask, 1000);
 
 void queueRestart() {
     if (I2SLoopTask != nullptr) {
@@ -43,12 +44,7 @@ void queueRestart() {
         I2SLoopTask = nullptr;
     }
 
-    // auto inInfo = in.getFrequencyInfo();
-    // auto outInfo = out.getFrequencyInfo();
-    // printf("[IN] Sample: %lu Bits: %u\n", inInfo.sampleRate, inInfo.bitsPerSample);
-    // printf("[OUT] Sample: %lu Bits: %u\n", outInfo.sampleRate, outInfo.bitsPerSample);
-
-    xTimerStart(restartTimer, 0);
+    restart();
 }
 
 extern "C" void app_main(void) {
