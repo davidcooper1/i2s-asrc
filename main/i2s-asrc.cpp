@@ -49,7 +49,6 @@ void queueRestart() {
 }
 
 extern "C" void app_main(void) {
-    vTaskDelay(pdMS_TO_TICKS(5000));
     initializeGpio();
     in.onFrequencyChange(&queueRestart);
     out.onFrequencyChange(&queueRestart);
