@@ -5,12 +5,12 @@
 #include <driver/pulse_cnt.h>
 #include <freertos/FreeRTOS.h>
 
-typedef struct {
+struct FrequencyInfo {
     uint32_t sampleRate;
     uint8_t bitsPerSample;
-} FrequencyInfo;
+};
 
-typedef std::function<void()> FrequencyChangeCallback;
+using FrequencyChangeCallback = std::function<void()>;
 
 class FrequencyFinder {
     public:
