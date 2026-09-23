@@ -37,7 +37,8 @@
 #define BIT_IN_DIN 1 << 2
 #define BIT_OUT_BCLK 1 << 3
 #define BIT_OUT_WS 1 << 4
-#define BIT_OUT_DOUT 1 << 5
+
+#define BIT_OUT_DOUT 1 << 0
 
 #define INPUT_BIT_MASK (BIT_IN_BCLK | BIT_IN_WS | BIT_IN_DIN | BIT_OUT_BCLK | BIT_OUT_WS)
 #define OUTPUT_BIT_MASK BIT_OUT_DOUT
@@ -58,7 +59,8 @@ namespace {
     RingBuffer<AudioFrame, 256> in;
     RingBuffer<AudioFrame, 256> out;
 
-    dedic_gpio_bundle_handle_t gpioHandle = nullptr;
+    dedic_gpio_bundle_handle_t gpioInHandle = nullptr;
+    dedic_gpio_bundle_handle_t gpioOutHandle = nullptr;
 
     // Uses 
     inline void setDataBit(bool enabled) {
@@ -102,17 +104,29 @@ namespace {
         dedic_gpio_bundle_config_t bundleConfig = {
             .gpio_array = new const int[]{ 
                 IN_BCLK_PIN, IN_WS_PIN, IN_DIN_PIN,
-                OUT_BCLK_PIN, OUT_WS_PIN, OUT_DOUT_PIN
+                OUT_BCLK_PIN, OUT_WS_PIN
             },
-            .array_size = 6,
+            .array_size = 5,
             .flags = {
                 .in_en = 1,
+                .in_invert = 0,
+                .out_en = 0,
+                .out_invert = 0
+            }
+        };
+        ESP_ERROR_CHECK(dedic_gpio_new_bundle(&bundleConfig, &gpioInHandle));
+
+        bundleConfig = {
+            .gpio_array = new const int[] { OUT_DOUT_PIN },
+            .array_size = 1,
+            .flags = {
+                .in_en = 0,
                 .in_invert = 0,
                 .out_en = 1,
                 .out_invert = 0
             }
         };
-        ESP_ERROR_CHECK(dedic_gpio_new_bundle(&bundleConfig, &gpioHandle));
+        ESP_ERROR_CHECK(dedic_gpio_new_bundle(&bundleConfig, &gpioOutHandle));
 
         vTaskDelete(nullptr);
     }
