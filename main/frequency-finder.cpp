@@ -39,7 +39,7 @@ namespace {
     };
 }
 
-FrequencyFinder::FrequencyFinder(gpio_num_t bckPin, gpio_num_t wsPin): bckCounter(bckPin), wsCounter(wsPin) {}
+FrequencyFinder::FrequencyFinder(gpio_num_t bckPin, gpio_num_t wsPin): bckCounter(bckPin), wsCounter(wsPin, 1000) {}
 
 FrequencyFinder::~FrequencyFinder() {
     stopTask();
@@ -84,13 +84,21 @@ void FrequencyFinder::frequencyCheckTask(void* params) {
         vTaskDelay(pdMS_TO_TICKS(50));
         auto bckCount = instance->bckCounter.getCount() * 20;
         auto wsCount = instance->wsCounter.getCount() * 20;
-        auto oldSampleRate = instance->info.sampleRate;
-        auto oldBits = instance->info.bitsPerSample;
+        FrequencyInfo oldInfo = instance->info;
 
-        instance->info.sampleRate = quantizeSampleRate(wsCount);
-        instance->info.bitsPerSample = wsCount != 0 ? quantizeBitsPerSample(bckCount / wsCount / 2) : 0;
+        if (wsCount == 0 || bckCount == 0) {
+            instance->info = {
+                .sampleRate = 0,
+                .bitsPerSample = 0
+            };
+        } else {
+            instance->info = {
+                .sampleRate = quantizeSampleRate(wsCount),
+                .bitsPerSample = quantizeBitsPerSample(bckCount / wsCount / 2)
+            };
+        }
 
-        if (instance->frequencyCallback != nullptr && (oldSampleRate != instance->info.sampleRate || oldBits != instance->info.bitsPerSample)) {
+        if (instance->frequencyCallback != nullptr && (oldInfo.sampleRate != instance->info.sampleRate || oldInfo.bitsPerSample != instance->info.bitsPerSample)) {
             instance->frequencyCallback();
         }
 
