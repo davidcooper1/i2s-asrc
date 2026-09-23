@@ -22,18 +22,15 @@ pcnt_event_callbacks_t callbacks = {
     .on_reach = onReachWatchPoint
 };
 
-PulseCounter::PulseCounter(uint8_t pin) {
-    this->pin = pin;
-    setupCounter();
-}
-
-PulseCounter::~PulseCounter() {
-    pcnt_del_unit(unitHandle);
-    pcnt_del_channel(channelHandle);
-}
-
-void PulseCounter::setupCounter() {
+PulseCounter::PulseCounter(uint8_t pin, uint32_t glitchFilterNs) {
     ESP_ERROR_CHECK(pcnt_new_unit(&unitConfig, &unitHandle));
+
+    if (glitchFilterNs != 0) {
+        pcnt_glitch_filter_config_t glitchFilter = {
+            .max_glitch_ns = glitchFilterNs
+        };
+        ESP_ERROR_CHECK(pcnt_unit_set_glitch_filter(unitHandle, &glitchFilter));
+    }
 
     pcnt_chan_config_t config {
         .edge_gpio_num = pin,
@@ -45,6 +42,11 @@ void PulseCounter::setupCounter() {
     ESP_ERROR_CHECK(pcnt_unit_add_watch_point(unitHandle, unitConfig.high_limit));
     ESP_ERROR_CHECK(pcnt_unit_register_event_callbacks(unitHandle, &callbacks, nullptr));
     ESP_ERROR_CHECK(pcnt_unit_enable(unitHandle));
+}
+
+PulseCounter::~PulseCounter() {
+    pcnt_del_unit(unitHandle);
+    pcnt_del_channel(channelHandle);
 }
 
 void PulseCounter::start() {
