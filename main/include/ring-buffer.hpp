@@ -23,4 +23,5 @@ class RingBuffer {
     public:
         void push(T item);
         std::optional<T> pop();
+        void clear();
 };

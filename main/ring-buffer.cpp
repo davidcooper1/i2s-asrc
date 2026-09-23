@@ -37,3 +37,9 @@ std::optional<T> RingBuffer<T, Capacity>::pop() {
 
     return item;
 }
+
+template <typename T, size_t Capacity>
+void RingBuffer<T, Capacity>::clear() {
+    cached_tail = tail.load(std::memory_order_acquire);
+    head.store(cached_tail, std::memory_order_release);
+}
