@@ -18,7 +18,7 @@
 // Output side WS input pin.
 #define OUT_WS_PIN GPIO_NUM_6
 // Output side DOUT output pin.
-#define OUT_DOUT_PIN GPIO_NUM_10
+#define OUT_DOUT_PIN GPIO_NUM_4
 
 // Mask of all input GPIO pins.
 #define INPUT_PIN_MASK (\
