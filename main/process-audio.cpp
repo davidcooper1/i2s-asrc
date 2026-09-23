@@ -32,6 +32,20 @@
 // Mask of all output GPIO pins.
 #define OUTPUT_PIN_MASK ((1 << OUT_DOUT_PIN))
 
+#define BIT_IN_BCLK 1 << 0
+#define BIT_IN_WS 1 << 1
+#define BIT_IN_DIN 1 << 2
+#define BIT_OUT_BCLK 1 << 3
+#define BIT_OUT_WS 1 << 4
+#define BIT_OUT_DOUT 1 << 5
+
+#define INPUT_BIT_MASK (BIT_IN_BCLK | BIT_IN_WS | BIT_IN_DIN | BIT_OUT_BCLK | BIT_OUT_WS)
+#define OUTPUT_BIT_MASK BIT_OUT_DOUT
+
+#if !defined(CONFIG_SOC_DEDICATED_GPIO_SUPPORTED)
+    #error "Dedicated GPIO must be supported and enabled."
+#endif
+
 // Core that will run bit-bang loop.
 #define BIT_BANG_CORE_ID 1
 
@@ -42,11 +56,31 @@ namespace {
     };
 
     RingBuffer<AudioFrame, 256> in;
+    RingBuffer<AudioFrame, 256> out;
 
     dedic_gpio_bundle_handle_t gpioHandle = nullptr;
 
-    void GpioInitializeTask(void* params) {
-        TaskHandle_t waitingTaskHandle = static_cast<TaskHandle_t>(params);
+    // Uses 
+    inline void setDataBit(bool enabled) {
+        if (enabled) {
+            asm volatile ("ee.set_bit_gpio_out %0" : : "I"(BIT_OUT_DOUT) :);
+        } else {
+            asm volatile ("ee.clr_bit_gpio_out %0" : : "I"(BIT_OUT_DOUT) :);
+        }
+    }
+
+    inline uint32_t getInputBits() {
+        uint32_t result;
+        asm volatile ("ee.get_gpio_in %[r]" : [r] "=r" (result));
+        return result;
+    }
+
+    /**
+     * Configures the GPIO pins and initializes the dedicated GPIO module.
+     * @param taskHandle The pointer to task waiting on this one.
+     */
+    void GpioInitializeTask(void* taskHandle) {
+        TaskHandle_t waitingTaskHandle = static_cast<TaskHandle_t>(taskHandle);
 
         gpio_config_t config = {
             .pin_bit_mask = INPUT_PIN_MASK,
@@ -64,6 +98,21 @@ namespace {
         if (waitingTaskHandle != nullptr) {
             xTaskNotifyGive(waitingTaskHandle);
         }
+
+        dedic_gpio_bundle_config_t bundleConfig = {
+            .gpio_array = new const int[]{ 
+                IN_BCLK_PIN, IN_WS_PIN, IN_DIN_PIN,
+                OUT_BCLK_PIN, OUT_WS_PIN, OUT_DOUT_PIN
+            },
+            .array_size = 6,
+            .flags = {
+                .in_en = 1,
+                .in_invert = 0,
+                .out_en = 1,
+                .out_invert = 0
+            }
+        };
+        ESP_ERROR_CHECK(dedic_gpio_new_bundle(&bundleConfig, &gpioHandle));
 
         vTaskDelete(nullptr);
     }
