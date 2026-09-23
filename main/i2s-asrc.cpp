@@ -2,6 +2,7 @@
 #include <driver/gpio.h>
 #include <frequency-finder.hpp>
 #include <debounced-function.hpp>
+#include <process-audio.hpp>
 
 FrequencyFinder in(GPIO_NUM_9, GPIO_NUM_11);
 FrequencyFinder out(GPIO_NUM_5, GPIO_NUM_6);
@@ -48,6 +49,8 @@ void queueRestart() {
 }
 
 extern "C" void app_main(void) {
+    vTaskDelay(pdMS_TO_TICKS(5000));
+    initializeGpio();
     in.onFrequencyChange(&queueRestart);
     out.onFrequencyChange(&queueRestart);
     in.startTask();
