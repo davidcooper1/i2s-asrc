@@ -98,7 +98,7 @@ void FrequencyFinder::frequencyCheckTask(void* params) {
             };
         }
 
-        if (instance->frequencyCallback != nullptr && (oldInfo.sampleRate != instance->info.sampleRate || oldInfo.bitsPerSample != instance->info.bitsPerSample)) {
+        if (instance->frequencyCallback != nullptr && oldInfo != instance->info) {
             instance->frequencyCallback();
         }
 

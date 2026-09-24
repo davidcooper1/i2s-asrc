@@ -8,6 +8,8 @@
 struct FrequencyInfo {
     uint32_t sampleRate;
     uint8_t bitsPerSample;
+
+    bool operator==(const FrequencyInfo&) const = default;
 };
 
 using FrequencyChangeCallback = std::function<void()>;
