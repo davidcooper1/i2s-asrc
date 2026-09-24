@@ -76,7 +76,7 @@ void FrequencyFinder::stopTask() {
 }
 
 void FrequencyFinder::frequencyCheckTask(void* params) {
-    FrequencyFinder* instance = static_cast<FrequencyFinder*>(params);
+    auto instance = static_cast<FrequencyFinder*>(params);
     instance->bckCounter.start();
     instance->wsCounter.start();
 
@@ -84,7 +84,7 @@ void FrequencyFinder::frequencyCheckTask(void* params) {
         vTaskDelay(pdMS_TO_TICKS(50));
         auto bckCount = instance->bckCounter.getCount() * 20;
         auto wsCount = instance->wsCounter.getCount() * 20;
-        FrequencyInfo oldInfo = instance->info;
+        auto oldInfo = instance->info;
 
         if (wsCount == 0 || bckCount == 0) {
             instance->info = {
